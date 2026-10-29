@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIT Vellore Class CGPA Calculator</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+
+<div class="container my-4" style="max-width: 960px;">
+
+    <!-- Header -->
+    <div class="card p-4 mb-4 site-header">
+        <h1 class="text-center mb-1">VIT Vellore Class CGPA Calculator</h1>
+        <p class="text-center">Relative Grading &mdash; Mean &amp; Standard Deviation Based</p>
+    </div>
+
+    <!-- Error display -->
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Input Card -->
+    <div class="card p-4 mb-4">
+
+        <!-- Step 0: Choose N and A -->
+        <div class="setup-row mb-3">
+            <div class="row g-3 align-items-end">
+                <div class="col-sm-5">
+                    <label for="num_students_input" class="form-label fw-bold mb-1">Number of Students</label>
+                    <input type="number" id="num_students_input" class="form-control" min="1" placeholder="e.g. 3">
+                </div>
+                <div class="col-sm-5">
+                    <label for="num_subjects_input" class="form-label fw-bold mb-1">Number of Subjects</label>
+                    <input type="number" id="num_subjects_input" class="form-control" min="1" placeholder="e.g. 2">
+                </div>
+                <div class="col-sm-2">
+                    <button type="button" class="btn btn-success w-100 fw-bold" onclick="generateForms()">Generate</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic form (hidden until generated) -->
+        <form method="POST" id="mainForm" style="display: none;">
+            <input type="hidden" name="num_students" id="num_students_hidden">
+            <input type="hidden" name="num_subjects" id="num_subjects_hidden">
+
+            <div id="subject-details-container" class="mb-4"></div>
+            <div id="student-data-container"></div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold mt-3">Calculate Class CGPA</button>
+        </form>
+    </div>
+
+    <!-- Results -->
+    {% if results %}
+    <div class="card p-4 mb-4" id="results">
+        <h3 class="fw-bold mb-3" style="font-size:1.25rem;">Class Calculation Results</h3>
+
+        <!-- Summary stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h6>Class Average Marks</h6>
+                    <h4 class="text-primary">{{ results.class_avg_marks }}<small class="text-muted fw-normal"> / 100</small></h4>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h6>Standard Deviation</h6>
+                    <h4 style="color: var(--clr-info);">{{ results.class_sd_marks }}</h4>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h6>Class Average CGPA</h6>
+                    <h4 class="text-success">{{ results.class_avg_cgpa }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- Per-student breakdown -->
+        <h5 class="fw-bold mb-3" style="font-size:1rem;">Student-wise Breakdown</h5>
+
+        {% for student in results.students %}
+        <div class="student-block">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold">{{ student.name }}</span>
+                <span class="badge bg-dark" style="font-size:0.85rem;">CGPA: {{ student.cgpa }}</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Subject</th>
+                            <th>Credits</th>
+                            <th>Total Marks (100)</th>
+                            <th>Grade</th>
+                            <th>Grade Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in student.subjects %}
+                        <tr>
+                            <td>{{ sub.sub_name }}</td>
+                            <td>{{ sub.credit }}</td>
+                            <td>{{ sub.total_marks }}</td>
+                            <td><span class="badge bg-secondary">{{ sub.grade }}</span></td>
+                            <td>{{ sub.gp }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        &copy; 2026 VIT Vellore Class CGPA Calculator &bull;
+        <a href="/privacy">Privacy Policy</a> &bull;
+        <a href="/terms">Terms &amp; Conditions</a>
+    </footer>
+</div>
+
+<script>
+function generateForms() {
+    const numStudents = parseInt(document.getElementById('num_students_input').value);
+    const numSubjects = parseInt(document.getElementById('num_subjects_input').value);
+
+    if (isNaN(numStudents) || numStudents <= 0 || isNaN(numSubjects) || numSubjects <= 0) {
+        alert('Please enter valid numbers for Students and Subjects.');
+        return;
+    }
+
+    document.getElementById('num_students_hidden').value = numStudents;
+    document.getElementById('num_subjects_hidden').value = numSubjects;
+
+    // --- Subject details ---
+    let subHtml = '<h5 class="fw-bold mb-3" style="font-size:1rem; color:var(--clr-text-muted);">Step 1 &mdash; Subject Details &amp; Credits</h5><div class="row g-2">';
+    for (let j = 0; j < numSubjects; j++) {
+        subHtml += `
+        <div class="col-md-6 mb-2">
+            <div class="p-2 border rounded bg-white">
+                <div class="row g-2">
+                    <div class="col-7">
+                        <label class="form-label small mb-1">Subject ${j + 1} Name</label>
+                        <input type="text" name="sub_name_${j}" class="form-control form-control-sm" value="Subject ${j + 1}" required>
+                    </div>
+                    <div class="col-5">
+                        <label class="form-label small mb-1">Credits</label>
+                        <input type="number" name="sub_credit_${j}" class="form-control form-control-sm" value="4" min="1" required>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+    subHtml += '</div>';
+    document.getElementById('subject-details-container').innerHTML = subHtml;
+
+    // --- Student marks ---
+    let stuHtml = '<h5 class="fw-bold mb-3" style="font-size:1rem; color:var(--clr-text-muted);">Step 2 &mdash; Student Marks Entry</h5>';
+    for (let i = 0; i < numStudents; i++) {
+        stuHtml += `
+        <div class="student-block">
+            <h6 class="fw-bold mb-3" style="color:var(--clr-accent);">Student ${i + 1}</h6>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Name</label>
+                <input type="text" name="student_name_${i}" class="form-control" placeholder="e.g. Rahul" required>
+            </div>`;
+        for (let j = 0; j < numSubjects; j++) {
+            stuHtml += `
+            <div class="subject-box">
+                <div class="fw-bold mb-2">Subject ${j + 1}</div>
+                <div class="row g-2">
+                    <div class="col-md-2 col-6">
+                        <label class="form-label small mb-0">CAT-1 (/50)</label>
+                        <input type="number" step="0.5" min="0" max="50" name="cat1_${i}_${j}" class="form-control form-control-sm" required placeholder="0-50">
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <label class="form-label small mb-0">CAT-2 (/50)</label>
+                        <input type="number" step="0.5" min="0" max="50" name="cat2_${i}_${j}" class="form-control form-control-sm" required placeholder="0-50">
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <label class="form-label small mb-0">Quiz (/50)</label>
+                        <input type="number" step="0.5" min="0" max="50" name="quiz_${i}_${j}" class="form-control form-control-sm" required placeholder="0-50">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label class="form-label small mb-0">Assessment (/100)</label>
+                        <input type="number" step="0.5" min="0" max="100" name="assesment_${i}_${j}" class="form-control form-control-sm" required placeholder="0-100">
+                    </div>
+                    <div class="col-md-3 col-12">
+                        <label class="form-label small mb-0">FAT (/100)</label>
+                        <input type="number" step="0.5" min="0" max="100" name="fat_${i}_${j}" class="form-control form-control-sm" required placeholder="0-100">
+                    </div>
+                </div>
+            </div>`;
+        }
+        stuHtml += '</div>';
+    }
+    document.getElementById('student-data-container').innerHTML = stuHtml;
+    document.getElementById('mainForm').style.display = 'block';
+}
+</script>
+
+</body>
+</html>

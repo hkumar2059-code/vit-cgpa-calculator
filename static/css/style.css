@@ -1,0 +1,153 @@
+/* ===== Base ===== */
+:root {
+    --clr-bg: #f4f6f8;
+    --clr-surface: #ffffff;
+    --clr-border: #dce1e6;
+    --clr-text: #1a1a1a;
+    --clr-text-muted: #5f6b7a;
+    --clr-accent: #0d6efd;
+    --clr-accent-dark: #084298;
+    --clr-success: #198754;
+    --clr-info: #0dcaf0;
+    --radius: 8px;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    background-color: var(--clr-bg);
+    color: var(--clr-text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+
+/* ===== Cards ===== */
+.card {
+    background: var(--clr-surface);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+}
+
+/* ===== Header ===== */
+.site-header {
+    border-bottom: 3px solid var(--clr-accent);
+    margin-bottom: 0;
+}
+
+.site-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--clr-text);
+    letter-spacing: -0.3px;
+}
+
+.site-header p {
+    color: var(--clr-text-muted);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* ===== Setup Row ===== */
+.setup-row {
+    background: var(--clr-bg);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius);
+    padding: 1rem;
+}
+
+/* ===== Student Blocks ===== */
+.student-block {
+    background: var(--clr-surface);
+    border: 1px solid var(--clr-border);
+    border-left: 4px solid var(--clr-accent);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.subject-box {
+    background: var(--clr-bg);
+    border: 1px solid var(--clr-border);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.625rem;
+}
+
+.subject-box .fw-bold {
+    font-size: 0.8125rem;
+    color: var(--clr-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* ===== Buttons ===== */
+.btn-primary,
+.btn-success {
+    border-radius: 6px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+/* ===== Results ===== */
+.stat-card {
+    background: var(--clr-bg);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    text-align: center;
+}
+
+.stat-card h6 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--clr-text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.stat-card h4 {
+    font-weight: 700;
+    margin: 0;
+}
+
+.badge {
+    font-weight: 600;
+    border-radius: 4px;
+}
+
+/* ===== Tables ===== */
+.table {
+    font-size: 0.875rem;
+}
+
+.table thead th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--clr-text-muted);
+    border-bottom-width: 2px;
+}
+
+/* ===== Footer ===== */
+.site-footer {
+    font-size: 0.8125rem;
+    color: var(--clr-text-muted);
+    border-top: 1px solid var(--clr-border);
+    padding: 1rem 0;
+    margin-top: 2rem;
+    text-align: center;
+}
+
+/* ===== Error Alert ===== */
+.alert-danger {
+    border-radius: var(--radius);
+}
+
+/* ===== Responsive tweaks ===== */
+@media (max-width: 576px) {
+    .site-header h1 { font-size: 1.25rem; }
+    .student-block { padding: 1rem; }
+}
