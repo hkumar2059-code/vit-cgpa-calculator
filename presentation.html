@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIT Vellore Class CGPA Calculator — 3D Presentation</title>
+    <!-- Three.js for 3D animated canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg-deep: #070d18;
+            --card-bg: rgba(16, 28, 48, 0.75);
+            --card-border: rgba(0, 210, 255, 0.25);
+            --cyan-glow: #00d2ff;
+            --blue-accent: #0d6efd;
+            --gold-accent: #ffc107;
+            --text-main: #f0f4f8;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+        }
+
+        #bg3d-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Top Brand Bar */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 50;
+            background: linear-gradient(180deg, rgba(7, 13, 24, 0.95), transparent);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .brand-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--cyan-glow);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-badge {
+            background: rgba(0, 210, 255, 0.15);
+            border: 1px solid var(--cyan-glow);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .guide-label {
+            font-size: 0.85rem;
+            color: var(--gold-accent);
+            font-weight: 600;
+        }
+
+        /* Presentation Container */
+        .deck-viewport {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            perspective: 1400px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide {
+            position: absolute;
+            width: 88vw;
+            max-width: 1300px;
+            height: 76vh;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 2.5rem 3.5rem;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 210, 255, 0.1);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateZ(-350px) rotateY(30deg) scale(0.85);
+            transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateZ(0) rotateY(0deg) scale(1);
+        }
+
+        .slide.prev {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateZ(-350px) rotateY(-30deg) scale(0.85);
+        }
+
+        /* Slide Typography */
+        .slide-tag {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--cyan-glow);
+            margin-bottom: 0.4rem;
+        }
+
+        .slide-heading {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* 3D Grid Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.2rem;
+        }
+
+        /* 3D Glass Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 1.4rem;
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-6px) rotateX(4deg);
+            border-color: var(--cyan-glow);
+            box-shadow: 0 12px 25px rgba(0, 210, 255, 0.15);
+        }
+
+        .card-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.8rem;
+            color: var(--cyan-glow);
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-text {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Team Badges on Slide 1 */
+        .team-pill {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.8rem 1.2rem;
+            border-radius: 10px;
+            margin-bottom: 0.7rem;
+            transition: all 0.25s ease;
+        }
+
+        .team-pill:hover {
+            background: rgba(0, 210, 255, 0.08);
+            border-color: var(--cyan-glow);
+            transform: translateX(6px);
+        }
+
+        .member-name {
+            font-weight: 700;
+            color: #ffffff;
+            font-size: 1.05rem;
+        }
+
+        .member-reg {
+            font-family: monospace;
+            color: var(--cyan-glow);
+            font-size: 0.95rem;
+            font-weight: 600;
+            background: rgba(0, 210, 255, 0.1);
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .member-role {
+            font-size: 0.8rem;
+            color: var(--gold-accent);
+        }
+
+        /* Cutoff Table */
+        .cutoff-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        .cutoff-table th {
+            text-align: left;
+            padding: 0.7rem 1rem;
+            background: rgba(0, 210, 255, 0.1);
+            color: var(--cyan-glow);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            border-radius: 6px;
+        }
+
+        .cutoff-table td {
+            padding: 0.65rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--text-main);
+        }
+
+        .cutoff-table tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Interactive Bell Curve Widget in Slide */
+        .curve-simulator {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .slider-row input[type="range"] {
+            flex: 1;
+            accent-color: var(--cyan-glow);
+        }
+
+        .dynamic-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            height: 120px;
+            padding-top: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .bar-col {
+            flex: 1;
+            background: linear-gradient(180deg, var(--cyan-glow), var(--blue-accent));
+            border-radius: 4px 4px 0 0;
+            transition: height 0.3s ease;
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -22px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* Bottom Controls */
+        .deck-controls {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            background: rgba(16, 28, 48, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 0.6rem 1.4rem;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            z-index: 50;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .ctrl-btn {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(0, 210, 255, 0.2);
+            color: var(--cyan-glow);
+            transform: scale(1.1);
+        }
+
+        .slide-indicator {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--cyan-glow);
+            letter-spacing: 1px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* Progress Bar */
+        .progress-bar-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 10%;
+            background: linear-gradient(90deg, var(--blue-accent), var(--cyan-glow));
+            transition: width 0.4s ease;
+        }
+
+        /* Keyboard hint badge */
+        .key-hint {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: rgba(0, 0, 0, 0.4);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 40;
+        }
+
+        kbd {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D Three.js Animated Background -->
+    <canvas id="bg3d-canvas"></canvas>
+
+    <!-- Top Navigation Bar -->
+    <header class="top-nav">
+        <div class="brand-title">
+            <span>VIT Vellore</span>
+            <span class="brand-badge">Relative Grading System</span>
+        </div>
+        <div class="guide-label">
+            Submitted to: Prof. Yogaraja C (SITE)
+        </div>
+    </header>
+
+    <!-- Presentation Viewport -->
+    <main class="deck-viewport">
+
+        <!-- SLIDE 1: Hero / Title Slide -->
+        <section class="slide active" data-index="1">
+            <div class="slide-tag">Project Defense &bull; Engineering Capstone</div>
+            <h1 class="slide-heading" style="font-size: 2.8rem; margin-bottom: 0.8rem;">
+                VIT Vellore Class CGPA Calculator
+            </h1>
+            <p style="color: var(--text-muted); font-size: 1.15rem; margin-bottom: 2rem;">
+                A Full-Stack Relative Grading &amp; Statistical Evaluation System
+            </p>
+
+            <div class="grid-2">
+                <!-- Guide Info -->
+                <div class="glass-card" style="display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 0.8rem; color: var(--gold-accent); font-weight: 700; text-transform: uppercase; margin-bottom: 0.4rem;">
+                        Project Supervisor
+                    </div>
+                    <div style="font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 0.4rem;">
+                        Prof. Yogaraja C
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+                        School of Information Technology and Engineering (SITE)<br>
+                        Vellore Institute of Technology, Vellore
+                    </div>
+                    <div style="margin-top: 1.5rem; display: flex; gap: 10px;">
+                        <span style="background: rgba(13, 110, 253, 0.2); border: 1px solid var(--blue-accent); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Python Flask</span>
+                        <span style="background: rgba(0, 210, 255, 0.2); border: 1px solid var(--cyan-glow); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Relative Grading</span>
+                        <span style="background: rgba(255, 193, 7, 0.2); border: 1px solid var(--gold-accent); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Full-Stack</span>
+                    </div>
+                </div>
+
+                <!-- Team Members List -->
+                <div class="glass-card">
+                    <div style="font-size: 0.8rem; color: var(--cyan-glow); font-weight: 700; text-transform: uppercase; margin-bottom: 0.8rem;">
+                        Project Team Members
+                    </div>
+
+                    <div class="team-pill">
+                        <div>
+                            <div class="member-name">Himanshu Kumar</div>
+                            <div class="member-role">Full-Stack Lead &amp; Statistical Algorithms</div>
+                        </div>
+                        <div class="member-reg">26BIT0347</div>
+                    </div>
+
+                    <div class="team-pill">
+                        <div>
+                            <div class="member-name">SRUJAN Y K</div>
+                            <div class="member-role">UI/UX &amp; Dynamic Grid Architecture</div>
+                        </div>
+                        <div class="member-reg">26BIT0225</div>
+                    </div>
+
+                    <div class="team-pill">
+                        <div>
+                            <div class="member-name">SAVANT KASHYAP</div>
+                            <div class="member-role">Client-Side Logic &amp; Form Validation</div>
+                        </div>
+                        <div class="member-reg">26BIT0360</div>
+                    </div>
+
+                    <div class="team-pill">
+                        <div>
+                            <div class="member-name">PARV JAIN</div>
+                            <div class="member-role">QA, Edge Case Analysis &amp; Docs</div>
+                        </div>
+                        <div class="member-reg">26BIT0230</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 2: Problem Statement -->
+        <section class="slide" data-index="2">
+            <div class="slide-tag">Context &bull; Motivation</div>
+            <h2 class="slide-heading">The Relative Grading Challenge</h2>
+            <div class="grid-3">
+                <div class="glass-card">
+                    <div class="card-icon">&sigma;</div>
+                    <div class="card-title">Dynamic Class Distribution</div>
+                    <div class="card-text">
+                        Unlike schools with fixed grade cutoffs (e.g., &gt;90 is S), VIT assigns grades based on standard deviation and class average. Boundaries shift with every batch.
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <div class="card-icon">&percnt;</div>
+                    <div class="card-title">Multi-Tier Weightage Scaling</div>
+                    <div class="card-text">
+                        5 separate evaluations: CAT-1 (15%), CAT-2 (15%), Quiz (15%), Digital Assessment (15%), and FAT (40%). Manual student conversions cause high error rates.
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <div class="card-icon">&Lt;&Gt;</div>
+                    <div class="card-title">Lack of Class Simulators</div>
+                    <div class="card-text">
+                        Existing apps only calculate past single-student GPA. There was no tool for professors or class reps to simulate entire batch cutoffs in real-time.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 3: Architecture -->
+        <section class="slide" data-index="3">
+            <div class="slide-tag">Engineering Architecture</div>
+            <h2 class="slide-heading">Full-Stack Data Pipeline</h2>
+            <div class="grid-3">
+                <div class="glass-card">
+                    <div class="card-title" style="color:var(--cyan-glow);">1. Dynamic Client Grid</div>
+                    <div style="font-size:0.8rem; color:var(--gold-accent); margin-bottom:0.8rem;">HTML5 &bull; Vanilla JS &bull; Bootstrap 5</div>
+                    <div class="card-text">
+                        Accepts parameters $N$ (Students) and $A$ (Subjects). Injects responsive form containers without reloading the browser. Validates input bounds (0-50, 0-100).
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <div class="card-title" style="color:var(--cyan-glow);">2. Flask Controller</div>
+                    <div style="font-size:0.8rem; color:var(--gold-accent); margin-bottom:0.8rem;">Python 3.10+ &bull; Jinja2</div>
+                    <div class="card-text">
+                        Extracts multi-nested POST payload. Normalizes and scales each raw exam component into a clean 100-mark unified metric per subject.
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <div class="card-title" style="color:var(--cyan-glow);">3. Statistical Engine</div>
+                    <div style="font-size:0.8rem; color:var(--gold-accent); margin-bottom:0.8rem;">Relative Grading &bull; In-Memory</div>
+                    <div class="card-text">
+                        Calculates Class Mean ($\mu$) and Standard Deviation ($\sigma$). Automatically maps relative letter grades and weighted credit CGPAs.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 4: Weightage Matrix -->
+        <section class="slide" data-index="4">
+            <div class="slide-tag">Mathematical Logic</div>
+            <h2 class="slide-heading">Component Weightage Matrix</h2>
+            <div class="grid-2">
+                <div class="glass-card">
+                    <table class="cutoff-table">
+                        <thead>
+                            <tr>
+                                <th>Exam Component</th>
+                                <th>Max Raw</th>
+                                <th>VIT Weightage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Continuous Assessment 1 (CAT-1)</td>
+                                <td>50 Marks</td>
+                                <td><strong>15%</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Continuous Assessment 2 (CAT-2)</td>
+                                <td>50 Marks</td>
+                                <td><strong>15%</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Digital Quizzes (Quiz 1 &amp; 2)</td>
+                                <td>50 Marks</td>
+                                <td><strong>15%</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Digital Assignment / Assessment</td>
+                                <td>100 Marks</td>
+                                <td><strong>15%</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Final Assessment Test (FAT)</td>
+                                <td>100 Marks</td>
+                                <td><strong>40%</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="glass-card" style="display:flex; flex-direction:column; justify-content:center;">
+                    <div style="font-size:0.85rem; color:var(--gold-accent); font-weight:700; margin-bottom:0.5rem;">SCALED TOTAL FORMULA</div>
+                    <div style="font-family:monospace; background:rgba(0,0,0,0.5); padding:1.2rem; border-radius:8px; border-left:3px solid var(--cyan-glow); font-size:1rem; line-height:1.7;">
+                        Total = (CAT1 / 50)&times;15 + (CAT2 / 50)&times;15<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ (Quiz / 50)&times;15 + (DA / 100)&times;15<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ (FAT / 100)&times;40
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.85rem; margin-top:1rem;">
+                        Every subject total is strictly standardized onto a 0&ndash;100 continuous scale.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 5: Relative Grading Cutoffs & Interactive Visualizer -->
+        <section class="slide" data-index="5">
+            <div class="slide-tag">Core Algorithm &bull; Interactive</div>
+            <h2 class="slide-heading">Relative Grade Cutoffs &amp; Gaussian Model</h2>
+            <div class="grid-2">
+                <div class="glass-card">
+                    <table class="cutoff-table">
+                        <thead>
+                            <tr>
+                                <th>Grade</th>
+                                <th>GP</th>
+                                <th>Statistical Condition</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span style="color:var(--cyan-glow); font-weight:bold;">S</span></td>
+                                <td>10</td>
+                                <td>Marks &gt; &mu; + 1.5 &times; &sigma;</td>
+                            </tr>
+                            <tr>
+                                <td><span style="color:#22c55e; font-weight:bold;">A</span></td>
+                                <td>9</td>
+                                <td>Marks &gt; &mu; + 0.5 &times; &sigma;</td>
+                            </tr>
+                            <tr>
+                                <td><span style="color:var(--gold-accent); font-weight:bold;">B</span></td>
+                                <td>8</td>
+                                <td>Marks &gt; &mu; &minus; 0.5 &times; &sigma;</td>
+                            </tr>
+                            <tr>
+                                <td><span>C</span></td>
+                                <td>7</td>
+                                <td>Marks &gt; &mu; &minus; 1.0 &times; &sigma;</td>
+                            </tr>
+                            <tr>
+                                <td><span>D</span></td>
+                                <td>6</td>
+                                <td>Marks &gt; &mu; &minus; 1.5 &times; &sigma;</td>
+                            </tr>
+                            <tr>
+                                <td><span>E</span></td>
+                                <td>5</td>
+                                <td>Marks &gt; &mu; &minus; 2.0 &times; &sigma;</td>
+                            </tr>
+                            <tr>
+                                <td><span style="color:#ef4444; font-weight:bold;">F</span></td>
+                                <td>0</td>
+                                <td>Otherwise</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Live Gaussian Visualizer Simulator -->
+                <div class="curve-simulator">
+                    <div style="font-size:0.85rem; font-weight:700; color:var(--cyan-glow);">
+                        LIVE RELATIVE BOUNDARY SIMULATOR
+                    </div>
+                    <div class="slider-row">
+                        <span>Class Mean (&mu;): <strong id="lbl-mean">65</strong></span>
+                        <input type="range" id="sim-mean" min="40" max="85" value="65" oninput="updateSimulator()">
+                    </div>
+                    <div class="slider-row">
+                        <span>Class SD (&sigma;): <strong id="lbl-sd">12</strong></span>
+                        <input type="range" id="sim-sd" min="4" max="22" value="12" oninput="updateSimulator()">
+                    </div>
+
+                    <div class="dynamic-bars">
+                        <div class="bar-col" id="bar-f" style="height: 25px;"><span class="bar-label">F</span></div>
+                        <div class="bar-col" id="bar-e" style="height: 40px;"><span class="bar-label">E</span></div>
+                        <div class="bar-col" id="bar-d" style="height: 60px;"><span class="bar-label">D</span></div>
+                        <div class="bar-col" id="bar-c" style="height: 80px;"><span class="bar-label">C</span></div>
+                        <div class="bar-col" id="bar-b" style="height: 105px;"><span class="bar-label">B</span></div>
+                        <div class="bar-col" id="bar-a" style="height: 90px;"><span class="bar-label">A</span></div>
+                        <div class="bar-col" id="bar-s" style="height: 45px;"><span class="bar-label">S</span></div>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
+                        S Cutoff: <strong id="lbl-s-cutoff" style="color:var(--cyan-glow);">83.0</strong> |
+                        A Cutoff: <strong id="lbl-a-cutoff" style="color:#22c55e;">71.0</strong> |
+                        B Cutoff: <strong id="lbl-b-cutoff" style="color:var(--gold-accent);">59.0</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 6: CGPA Calculation -->
+        <section class="slide" data-index="6">
+            <div class="slide-tag">Grading Engine</div>
+            <h2 class="slide-heading">Credit-Weighted CGPA Formulation</h2>
+            <div class="grid-3">
+                <div class="glass-card">
+                    <div class="card-title">1. Course Credit Multiplier</div>
+                    <div class="card-text">
+                        Each subject $j$ carries designated credits $C_j$ (e.g., 4 credits for Core CSE, 3 credits for Theory). Grade Points $GP_j$ are multiplied:
+                        <br><br>
+                        <code style="color:var(--cyan-glow);">Weighted_GP = GP_j &times; C_j</code>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="card-title">2. Student CGPA</div>
+                    <div class="card-text">
+                        The cumulative sum of weighted grade points is divided by the total registered credits:
+                        <br><br>
+                        <code style="color:var(--gold-accent);">CGPA = &Sigma;(GP_j &times; C_j) / &Sigma;C_j</code>
+                        <br><br>
+                        Rounded to 2 decimal places for academic reporting.
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="card-title">3. Zero-SD Fail-Safe</div>
+                    <div class="card-text">
+                        If all students receive identical marks, Standard Deviation becomes 0:
+                        <br><br>
+                        <span style="color:#22c55e;">Automatic Graceful Fallback:</span>
+                        System immediately transitions to absolute thresholds (&ge;90=S, &ge;80=A) to prevent division by zero errors.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 7: Live Simulation Results -->
+        <section class="slide" data-index="7">
+            <div class="slide-tag">Verification &bull; Test Bench</div>
+            <h2 class="slide-heading">Live Test Bench Simulation Results</h2>
+            <div class="glass-card" style="margin-bottom:1.5rem; background:rgba(0,210,255,0.06);">
+                <div style="display:flex; justify-content:space-around; align-items:center; text-align:center;">
+                    <div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase;">Class Average Marks</div>
+                        <div style="font-size:1.8rem; font-weight:800; color:var(--cyan-glow);">68.45 / 100</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase;">Standard Deviation (&sigma;)</div>
+                        <div style="font-size:1.8rem; font-weight:800; color:var(--gold-accent);">14.32</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase;">Class Mean CGPA</div>
+                        <div style="font-size:1.8rem; font-weight:800; color:#22c55e;">8.21</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="glass-card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.6rem;">
+                        <strong>Student 1 (Alice)</strong>
+                        <span class="member-reg">CGPA: 9.57</span>
+                    </div>
+                    <div class="card-text" style="font-size:0.85rem;">
+                        • DSA (4 Cr): 86.50 &rarr; <strong>S Grade (10 GP)</strong><br>
+                        • DBMS (3 Cr): 78.00 &rarr; <strong>A Grade (9 GP)</strong>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.6rem;">
+                        <strong>Student 2 (Bob)</strong>
+                        <span class="member-reg" style="color:var(--gold-accent); border-color:var(--gold-accent);">CGPA: 8.00</span>
+                    </div>
+                    <div class="card-text" style="font-size:0.85rem;">
+                        • DSA (4 Cr): 65.00 &rarr; <strong>B Grade (8 GP)</strong><br>
+                        • DBMS (3 Cr): 62.50 &rarr; <strong>B Grade (8 GP)</strong>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.6rem;">
+                        <strong>Student 3 (Charlie)</strong>
+                        <span class="member-reg" style="color:#94a3b8; border-color:#94a3b8;">CGPA: 6.57</span>
+                    </div>
+                    <div class="card-text" style="font-size:0.85rem;">
+                        • DSA (4 Cr): 54.00 &rarr; <strong>C Grade (7 GP)</strong><br>
+                        • DBMS (3 Cr): 51.50 &rarr; <strong>D Grade (6 GP)</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 8: Team Contributions -->
+        <section class="slide" data-index="8">
+            <div class="slide-tag">Project Team</div>
+            <h2 class="slide-heading">Member Roles &amp; Responsibilities</h2>
+            <div class="grid-4">
+                <div class="glass-card">
+                    <div class="card-title" style="font-size:1.05rem;">Himanshu Kumar</div>
+                    <div class="member-reg" style="display:inline-block; margin-bottom:0.6rem;">26BIT0347</div>
+                    <div style="font-size:0.8rem; color:var(--gold-accent); font-weight:600; margin-bottom:0.8rem;">Full-Stack &amp; Algorithms</div>
+                    <div class="card-text" style="font-size:0.8rem;">
+                        &bull; Flask architecture &amp; routes<br>
+                        &bull; Relative grading algorithm<br>
+                        &bull; Weighted CGPA integration
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="card-title" style="font-size:1.05rem;">SRUJAN Y K</div>
+                    <div class="member-reg" style="display:inline-block; margin-bottom:0.6rem;">26BIT0225</div>
+                    <div style="font-size:0.8rem; color:var(--gold-accent); font-weight:600; margin-bottom:0.8rem;">Frontend &amp; Responsive UI</div>
+                    <div class="card-text" style="font-size:0.8rem;">
+                        &bull; Bootstrap 5 interface<br>
+                        &bull; Clean academic theme<br>
+                        &bull; Results table breakdown
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="card-title" style="font-size:1.05rem;">SAVANT KASHYAP</div>
+                    <div class="member-reg" style="display:inline-block; margin-bottom:0.6rem;">26BIT0360</div>
+                    <div style="font-size:0.8rem; color:var(--gold-accent); font-weight:600; margin-bottom:0.8rem;">Dynamic Grid Logic</div>
+                    <div class="card-text" style="font-size:0.8rem;">
+                        &bull; Client-side dynamic DOM<br>
+                        &bull; Multi-tier input parsing<br>
+                        &bull; Mark boundary validation
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="card-title" style="font-size:1.05rem;">PARV JAIN</div>
+                    <div class="member-reg" style="display:inline-block; margin-bottom:0.6rem;">26BIT0230</div>
+                    <div style="font-size:0.8rem; color:var(--gold-accent); font-weight:600; margin-bottom:0.8rem;">QA &amp; Documentation</div>
+                    <div class="card-text" style="font-size:0.8rem;">
+                        &bull; Zero SD edge testing<br>
+                        &bull; Production readiness check<br>
+                        &bull; Technical report &amp; deck
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 9: Conclusion & Q&A -->
+        <section class="slide" data-index="9">
+            <div class="slide-tag">Evaluation &bull; Conclusion</div>
+            <div class="glass-card" style="text-align:center; padding:3rem 2rem;">
+                <div style="font-size:0.9rem; color:var(--cyan-glow); font-weight:700; text-transform:uppercase; letter-spacing:2px; margin-bottom:0.5rem;">
+                    PROJECT DEFENSE COMPLETE
+                </div>
+                <h2 style="font-size:2.6rem; font-weight:800; color:#fff; margin-bottom:1rem;">
+                    Thank You, Prof. Yogaraja C
+                </h2>
+                <p style="color:var(--text-muted); max-width:700px; margin:0 auto 2rem; font-size:1.05rem; line-height:1.6;">
+                    The VIT Vellore Class CGPA Calculator is packaged, fully tested, and ready for institutional batch simulations.
+                </p>
+
+                <div style="display:inline-flex; gap:1.5rem; text-align:left; background:rgba(0,0,0,0.3); padding:1.2rem 2rem; border-radius:12px; border:1px solid rgba(255,255,255,0.08);">
+                    <div>
+                        <div style="font-size:0.75rem; color:var(--gold-accent); font-weight:700;">FUTURE ENHANCEMENTS</div>
+                        <div style="font-size:0.9rem; color:var(--text-main); margin-top:0.3rem;">
+                            1. Direct Excel/CSV bulk class upload<br>
+                            2. Automated PDF Grade Card generation<br>
+                            3. Historical semester trend analysis
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top:2rem; font-size:1.2rem; font-weight:700; color:var(--gold-accent);">
+                    Questions &amp; Discussion
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Controls Dock -->
+    <div class="deck-controls">
+        <button class="ctrl-btn" onclick="prevSlide()" title="Previous Slide (Left Arrow)">&larr;</button>
+        <span class="slide-indicator" id="slide-num">1 / 9</span>
+        <button class="ctrl-btn" onclick="nextSlide()" title="Next Slide (Right Arrow)">&rarr;</button>
+        <button class="ctrl-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen (F)">&#x26F6;</button>
+    </div>
+
+    <!-- Slide Progress Bar -->
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- Keyboard Shortcut Hint -->
+    <div class="key-hint">
+        Navigate: <kbd>&larr;</kbd> <kbd>&rarr;</kbd> or <kbd>Space</kbd> &bull; Fullscreen: <kbd>F</kbd>
+    </div>
+
+    <!-- Interactive Scripts & Three.js 3D Background -->
+    <script>
+        // ==========================================
+        // 1. SLIDE NAVIGATION CONTROLLER
+        // ==========================================
+        let currentSlide = 1;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const slideNumEl = document.getElementById('slide-num');
+        const progressBar = document.getElementById('progress-bar');
+
+        function updateSlideUI() {
+            slides.forEach((slide, idx) => {
+                const sIndex = idx + 1;
+                slide.classList.remove('active', 'prev');
+                if (sIndex === currentSlide) {
+                    slide.classList.add('active');
+                } else if (sIndex < currentSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+
+            slideNumEl.textContent = `${currentSlide} / ${totalSlides}`;
+            progressBar.style.width = `${(currentSlide / totalSlides) * 100}%`;
+            playClickSound();
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                updateSlideUI();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                currentSlide--;
+                updateSlideUI();
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {});
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Keyboard Controls
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                prevSlide();
+            } else if (e.key.toLowerCase() === 'f') {
+                toggleFullscreen();
+            }
+        });
+
+        // 3D Card Hover Perspective Effect
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                card.style.transform = `perspective(1000px) rotateY(${x / 20}deg) rotateX(${-y / 20}deg) translateY(-4px)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(0)';
+            });
+        });
+
+        // Subtle Click Sound via Web Audio API (No external file needed)
+        function playClickSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.04, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.08);
+            } catch (e) {}
+        }
+
+        // ==========================================
+        // 2. LIVE BELL CURVE SIMULATOR (SLIDE 5)
+        // ==========================================
+        function updateSimulator() {
+            const mean = parseFloat(document.getElementById('sim-mean').value);
+            const sd = parseFloat(document.getElementById('sim-sd').value);
+
+            document.getElementById('lbl-mean').textContent = mean.toFixed(0);
+            document.getElementById('lbl-sd').textContent = sd.toFixed(0);
+
+            const sCutoff = mean + 1.5 * sd;
+            const aCutoff = mean + 0.5 * sd;
+            const bCutoff = mean - 0.5 * sd;
+
+            document.getElementById('lbl-s-cutoff').textContent = sCutoff.toFixed(1);
+            document.getElementById('lbl-a-cutoff').textContent = aCutoff.toFixed(1);
+            document.getElementById('lbl-b-cutoff').textContent = bCutoff.toFixed(1);
+
+            // Dynamically adjust bar heights based on SD
+            const baseMultiplier = 12 / sd;
+            document.getElementById('bar-b').style.height = `${Math.min(115, Math.max(70, 100 * baseMultiplier * 0.9))}px`;
+            document.getElementById('bar-a').style.height = `${Math.min(100, Math.max(50, 85 * (1 / baseMultiplier)))}px`;
+            document.getElementById('bar-s').style.height = `${Math.min(60, Math.max(25, 45 * (1 / baseMultiplier)))}px`;
+        }
+
+        // ==========================================
+        // 3. THREE.JS 3D ANIMATED BACKGROUND
+        // ==========================================
+        const canvas = document.getElementById('bg3d-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 80;
+
+        // Create 3D Floating Particle Field
+        const particleCount = 700;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        const color1 = new THREE.Color(0x00d2ff); // Cyan
+        const color2 = new THREE.Color(0x0d6efd); // Blue
+        const color3 = new THREE.Color(0xffc107); // Gold
+
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 160;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 100;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 100;
+
+            const c = Math.random() > 0.6 ? color1 : (Math.random() > 0.3 ? color2 : color3);
+            colors[i * 3] = c.r;
+            colors[i * 3 + 1] = c.g;
+            colors[i * 3 + 2] = c.b;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 1.6,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.65
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        // Subtle 3D Wireframe Plane (representing normal distribution mesh)
+        const planeGeo = new THREE.PlaneGeometry(160, 100, 24, 18);
+        const planeMat = new THREE.MeshBasicMaterial({
+            color: 0x00d2ff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.08
+        });
+        const meshPlane = new THREE.Mesh(planeGeo, planeMat);
+        meshPlane.rotation.x = -Math.PI / 2.8;
+        meshPlane.position.y = -25;
+        scene.add(meshPlane);
+
+        // Mouse Parallax
+        let mouseX = 0;
+        let mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.y += 0.001;
+            particles.rotation.x += 0.0005;
+
+            // Parallax camera easing
+            camera.position.x += (mouseX * 12 - camera.position.x) * 0.03;
+            camera.position.y += (-mouseY * 8 - camera.position.y) * 0.03;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Initialize UI
+        updateSlideUI();
+        updateSimulator();
+    </script>
+</body>
+</html>
